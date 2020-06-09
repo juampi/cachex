@@ -313,11 +313,21 @@ defmodule Cachex do
           { :ok, _pid }
 
   """
+  # For backwards compatibility
+  @spec start_link(atom) :: { atom, pid }
+  def start_link(name) when is_atom(name) do
+    start_link(name: name)
+  end
+  # For backwards compatibility
   @spec start_link(atom, Keyword.t) :: { atom, pid }
-  def start_link(name, options \\ [])
-  def start_link(name, _options) when not is_atom(name),
+  def start_link(name, opts) do
+    start_link([name: name] ++ opts)
+  end
+  def start_link(arg) when not is_list(arg),
     do: error(:invalid_name)
-  def start_link(name, options) do
+  @spec start_link(Keyword.t) :: { atom, pid }
+  def start_link(options) when is_list(options) do
+    name = Keyword.fetch!(options, :name)
     with { :ok,  true } <- ensure_started(),
          { :ok,  true } <- ensure_unused(name),
          { :ok, cache } <- setup_env(name, options),
